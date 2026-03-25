@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # Docker Registry - хранение образов
+  registry:
+    image: registry:2
+    container_name: session-registry
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./registry-data:/var/lib/registry
+    restart: unless-stopped
+    networks:
+      - session-network
+
+  # FastAPI - оркестрация и metadata
+  api:
+    build: .
+    container_name: session-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+    environment:
+      - REGISTRY_URL=http://registry:5000
+      - DESIGNER_IMAGE=designer-base:latest
+      - DEVELOPER_IMAGE=developer-base:latest
+    depends_on:
+      - registry
+    restart: unless-stopped
+    networks:
+      - session-network
+
+networks:
+  session-network:
+    driver: bridge
