@@ -58,10 +58,13 @@ RUN chmod +x /usr/local/bin/vnc_startup.sh
 
 COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Создание директорий для логов supervisor
+RUN mkdir -p /var/log/supervisor /var/run
+
 # ============================================
-# Порт noVNC
+# Порты: VNC (5900) и noVNC (6080)
 # ============================================
-EXPOSE 5900
+EXPOSE 5900 6080
 
 # ============================================
 # Запуск через supervisor

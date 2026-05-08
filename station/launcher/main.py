@@ -216,6 +216,7 @@ class SessionLauncher:
             "--tmpfs", "/run",
             "--tmpfs", "/home/session/.cache",
             "-p", "5900:5900",
+            "-p", "6080:6080",
             image_name
         ]
 
@@ -230,6 +231,23 @@ class SessionLauncher:
 
         self.session_active = True
 
+        # Ожидание готовности noVNC (до 15 секунд)
+        self.status_label.config(
+            text="Ожидание готовности сервера...",
+            foreground="blue"
+        )
+        self.root.update()
+
+        import time
+        for i in range(15):
+            time.sleep(1)
+            try:
+                check = requests.get("http://localhost:6080/vnc.html", timeout=2)
+                if check.status_code == 200:
+                    break
+            except Exception:
+                pass
+
         # Открытие noVNC в браузере
         self.open_novnc()
 
@@ -239,7 +257,7 @@ class SessionLauncher:
         )
 
         # Закрытие лаунчера
-        self.root.after(2000, self.root.quit)
+        self.root.after(3000, self.root.quit)
 
     def launch_container_local(self, session_type):
         """Запуск локального образа (без сервера)"""
@@ -286,12 +304,27 @@ class SessionLauncher:
 
         # Запуск браузера в режиме киоска
         if sys.platform == "win32":
-            # Windows
-            subprocess.Popen([
-                "chrome",
-                "--kiosk",
-                "--app=" + novnc_url
-            ])
+            # Windows — используем start для запуска браузера по умолчанию
+            # или chrome из стандартных путей
+            chrome_paths = [
+                r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+            ]
+            chrome_exe = None
+            for path in chrome_paths:
+                if os.path.exists(path):
+                    chrome_exe = path
+                    break
+
+            if chrome_exe:
+                subprocess.Popen([
+                    chrome_exe,
+                    "--kiosk",
+                    "--app=" + novnc_url
+                ])
+            else:
+                # Fallback: открываем браузер по умолчанию через start
+                os.system(f'start "" "{novnc_url}"')
         else:
             # Linux
             subprocess.Popen([

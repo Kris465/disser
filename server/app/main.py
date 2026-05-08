@@ -16,7 +16,12 @@ app.add_middleware(
 )
 
 # Конфигурация
+# REGISTRY_URL — адрес, доступный с хоста (для docker pull)
+# Внутри docker-compose контейнеры обращаются друг к другу по имени сервиса,
+# но лаунчер на хосте должен использовать localhost
 REGISTRY_URL = os.getenv("REGISTRY_URL", "http://localhost:5000")
+# Внутренний адрес registry для межконтейнерного общения
+REGISTRY_INTERNAL = os.getenv("REGISTRY_INTERNAL", "http://registry:5000")
 DESIGNER_IMAGE = os.getenv("DESIGNER_IMAGE", "designer-base:latest")
 DEVELOPER_IMAGE = os.getenv("DEVELOPER_IMAGE", "developer-base:latest")
 
@@ -77,7 +82,7 @@ async def get_image_metadata(image_type: str):
         hash=image_hash,
         registry_url=REGISTRY_URL,
         size_bytes=size_bytes,
-        full_name=f"{REGISTRY_URL}/{image_name}"
+        full_name=f"localhost:5000/{image_name}"
     )
 
 

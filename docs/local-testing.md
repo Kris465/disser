@@ -27,6 +27,7 @@ docker-compose ps
 # Должно быть:
 # - session-registry (порт 5000)
 # - session-api (порт 8000)
+# - При запуске сессии лаунчер пробрасывает порты 5900 (VNC) и 6080 (noVNC)
 ```
 
 Проверка API в браузере или через curl:
@@ -130,7 +131,8 @@ python main.py
 1. В окне лаунчера выберите тип сессии (Дизайнер или Разработчик)
 2. Лаунчер загрузит образ (если нет локально)
 3. Запустится контейнер
-4. Откроется браузер с noVNC
+4. Лаунчер подождёт готовности noVNC (до 15 секунд)
+5. Откроется браузер с noVNC в режиме киоска
 
 ### 5.2. Проверка работы
 
@@ -172,12 +174,17 @@ whoami
 
 Закройте браузер noVNC и проверьте:
 
+**Linux / macOS:**
 ```bash
-# Список контейнеров
-docker ps -a | findstr session_
-
-# Контейнер должен быть удалён автоматически (--rm)
+docker ps -a --filter name=session_
 ```
+
+**Windows (PowerShell):**
+```powershell
+docker ps -a --filter name=session_
+```
+
+Контейнер должен быть удалён автоматически (`--rm`).
 
 ---
 
@@ -268,20 +275,20 @@ netstat -ano | findstr :8000
 
 ## Очистка после тестирования
 
+> ⚠️ **Внимание:** Команды ниже удалят все образы и данные. Выполняйте только если хотите полностью очистить систему.
+
 ```bash
 # Остановка сервера
 cd D:\repos\disser\server
 docker-compose down
 
 # Удаление образов
-docker rmi base-session:latest
-docker rmi designer-base:latest
-docker rmi developer-base:latest
+docker rmi base-session:latest designer-base:latest developer-base:latest
 
-# Очистка registry
+# Очистка registry (имя зависит от настроек docker-compose)
 docker volume rm server_registry-data
 
-# Полная очистка
+# Полная очистка (удаляет ВСЕ неиспользуемые образы и контейнеры)
 docker system prune -a
 ```
 

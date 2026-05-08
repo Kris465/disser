@@ -73,13 +73,17 @@ cd session-system
 
 ### Шаг 2.3. Настройка сервера
 
-Откройте файл `server/app/config.py` и укажите:
+При развёртывании на сервере с другим IP отредактируйте `server/docker-compose.yml`:
 
-```python
-REGISTRY_URL = "http://192.168.1.100:5000"  # IP вашего сервера
-DESIGNER_IMAGE = "designer-base:latest"
-DEVELOPER_IMAGE = "developer-base:latest"
+```yaml
+environment:
+  - REGISTRY_URL=http://192.168.1.100:5000  # IP вашего сервера
+  - REGISTRY_INTERNAL=http://registry:5000
+  - DESIGNER_IMAGE=designer-base:latest
+  - DEVELOPER_IMAGE=developer-base:latest
 ```
+
+> **Примечание:** По умолчанию `REGISTRY_URL=http://localhost:5000` — для локального тестирования. Для продакшена замените на IP сервера.
 
 ### Шаг 2.4. Запуск сервера
 
@@ -107,7 +111,7 @@ docker-compose logs -f api
 curl http://192.168.1.100:8000/health
 
 # Ожидаемый ответ:
-# {"status":"ok","registry_url":"http://registry:5000",...}
+# {"status":"ok","registry_url":"http://192.168.1.100:5000","images":{"designer":"designer-base:latest","developer":"developer-base:latest"}}
 ```
 
 ---
@@ -200,14 +204,28 @@ docker build -t developer-base:latest .
 
 ### Шаг 4.4. Загрузка образов в Registry
 
+**На сервере (продакшен):**
+
 ```bash
-# Тегирование образов для локального registry
+# Тегирование образов с IP сервера
 docker tag designer-base:latest 192.168.1.100:5000/designer-base:latest
 docker tag developer-base:latest 192.168.1.100:5000/developer-base:latest
 
 # Загрузка
 docker push 192.168.1.100:5000/designer-base:latest
 docker push 192.168.1.100:5000/developer-base:latest
+```
+
+**Локальное тестирование (один компьютер):**
+
+```bash
+# Тегирование с localhost
+docker tag designer-base:latest localhost:5000/designer-base:latest
+docker tag developer-base:latest localhost:5000/developer-base:latest
+
+# Загрузка
+docker push localhost:5000/designer-base:latest
+docker push localhost:5000/developer-base:latest
 ```
 
 ### Шаг 4.5. Проверка Registry
@@ -337,15 +355,36 @@ docker pull 192.168.1.100:5000/designer-base:latest
 
 ### A. Команды Docker для администрирования
 
+**Linux / macOS:**
+
 ```bash
 # Список всех контейнеров сессий
-docker ps -a | findstr session_
+docker ps -a --filter name=session_
 
 # Остановка всех сессий
 docker stop $(docker ps -q --filter name=session_)
 
 # Удаление всех сессий
 docker rm $(docker ps -aq --filter name=session_)
+
+# Просмотр логов
+docker logs session_designer_<id>
+
+# Мониторинг ресурсов
+docker stats
+```
+
+**Windows (PowerShell):**
+
+```powershell
+# Список всех контейнеров сессий
+docker ps -a --filter name=session_
+
+# Остановка всех сессий
+docker stop $(docker ps -q --filter name=session_)
+
+# Удаление всех сессий
+docker rm -f $(docker ps -aq --filter name=session_)
 
 # Просмотр логов
 docker logs session_designer_<id>

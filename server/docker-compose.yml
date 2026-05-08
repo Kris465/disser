@@ -22,7 +22,8 @@ services:
     volumes:
       - ./app:/app
     environment:
-      - REGISTRY_URL=http://registry:5000
+      - REGISTRY_URL=http://localhost:5000
+      - REGISTRY_INTERNAL=http://registry:5000
       - DESIGNER_IMAGE=designer-base:latest
       - DEVELOPER_IMAGE=developer-base:latest
     depends_on:

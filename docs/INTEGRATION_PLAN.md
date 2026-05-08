@@ -147,12 +147,14 @@ docker build -t designer-base:latest .
 cd ../developer-base
 docker build -t developer-base:latest .
 
-# Загрузка в registry
-docker tag designer-base:latest localhost:5000/designer-base:latest
-docker tag developer-base:latest localhost:5000/developer-base:latest
-docker push localhost:5000/designer-base:latest
-docker push localhost:5000/developer-base:latest
+# Загрузка в registry (используйте IP сервера для продакшена)
+docker tag designer-base:latest 192.168.1.100:5000/designer-base:latest
+docker tag developer-base:latest 192.168.1.100:5000/developer-base:latest
+docker push 192.168.1.100:5000/designer-base:latest
+docker push 192.168.1.100:5000/developer-base:latest
 ```
+
+> **Примечание:** Для локального тестирования на одном компьютере используйте `localhost:5000` вместо IP сервера.
 
 #### 2.4. Проверка сервера
 
